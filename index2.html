@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ensaio TTR - Calculadora de Relação de Transformação</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.10/babel.min.js"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div id="root"></div>
+  <script type="text/babel">
+    const App = () => {
+      const [primaryVoltage, setPrimaryVoltage] = React.useState('');
+      const [secondaryVoltage, setSecondaryVoltage] = React.useState('');
+      const [nominalRatio, setNominalRatio] = React.useState('');
+      const [result, setResult] = React.useState(null);
+      const [error, setError] = React.useState('');
+
+      const calculateTTR = () => {
+        setError('');
+        setResult(null);
+
+        const primary = parseFloat(primaryVoltage);
+        const secondary = parseFloat(secondaryVoltage);
+        const nominal = parseFloat(nominalRatio);
+
+        if (!primary || !secondary || primary <= 0 || secondary <= 0) {
+          setError('Por favor, insira tensões válidas (números positivos).');
+          return;
+        }
+
+        const ratio = primary / secondary;
+        let deviation = null;
+        if (nominal && nominal > 0) {
+          deviation = ((ratio - nominal) / nominal) * 100;
+        }
+
+        setResult({
+          ratio: ratio.toFixed(2),
+          deviation: deviation ? deviation.toFixed(2) : null,
+          isWithinTolerance: deviation ? Math.abs(deviation) <= 0.5 : null
+        });
+      };
+
+      return (
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+          <h1 class="text-2xl font-bold text-center mb-4">Ensaio TTR - Relação de Transformação</h1>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Tensão Primária (V)</label>
+            <input
+              type="number"
+              value={primaryVoltage}
+              onChange={(e) => setPrimaryVoltage(e.target.value)}
+              class="mt-1 block w-full p-2 border rounded-md"
+              placeholder="Ex.: 13800"
+              step="any"
+            />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Tensão Secundária (V)</label>
+            <input
+              type="number"
+              value={secondaryVoltage}
+              onChange={(e) => setSecondaryVoltage(e.target.value)}
+              class="mt-1 block w-full p-2 border rounded-md"
+              placeholder="Ex.: 220"
+              step="any"
+            />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Relação Nominal (opcional)</label>
+            <input
+              type="number"
+              value={nominalRatio}
+              onChange={(e) => setNominalRatio(e.target.value)}
+              class="mt-1 block w-full p-2 border rounded-md"
+              placeholder="Ex.: 62.73"
+              step="any"
+            />
+          </div>
+          <button
+            onClick={calculateTTR}
+            class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
+          >
+            Calcular Relação
+          </button>
+          {error && <p class="mt-4 text-red-600">{error}</p>}
+          {result && (
+            <div class="mt-4 p-4 bg-gray-50 rounded-md">
+              <p><strong>Relação Calculada:</strong> {result.ratio}:1</p>
+              {result.deviation && (
+                <>
+                  <p><strong>Desvio:</strong> {result.deviation}%</p>
+                  <p><strong>Conformidade:</strong> {result.isWithinTolerance ? 'Dentro da tolerância (±0,5%)' : 'Fora da tolerância'}</p>
+                </>
+              )}
+            </div>
+          )}
+          <div class="mt-4 text-sm text-gray-600">
+            <p><strong>Nota de Segurança:</strong> Certifique-se de que o transformador está desenergizado antes do ensaio (IEEE C57.12.90).</p>
+            <p>Para mais detalhes, consulte as normas IEEE C57.12.90 ou ANSI/NETA MTS-2019.</p>
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
